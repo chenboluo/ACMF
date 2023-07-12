@@ -22,19 +22,12 @@ To test the model in the Celeb-DF in first stage, run the following script in yo
 python test-cele.py 
 ```
 
-First-stage-Celeb-DF-resutl.txt is the result.
 
 To test the model in the WDF in first stage, run the following script in your console. The model will start training and return the AUC at each epoch.
 ```
 python test-wdf.py 
 ```
-First-stage-WDF-resutl.txt is the result.
 
-To test the model in the WDF in second stage, run the following script in your console. The model will start training and return the AUC at each epoch.
-```
-python Train-second-stage.py
-```
-second-stage-wdf.txt is the result.
 
 ### Pre-trained models
 You can load the pre-trained model in test files.
