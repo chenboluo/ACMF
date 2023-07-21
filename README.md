@@ -34,3 +34,5 @@ You can load the pre-trained model in test files.
 You can download the pre-trained model from here.
 https://pan.baidu.com/s/1sULCnA-5WVtGHtfCjc9_PQ 
 key：ozcc
+or 
+https://drive.google.com/file/d/1T3bNEJwsxLVlU6R6bZKWG7weMW8jvaKl/view?usp=drive_link, https://drive.google.com/file/d/1l1ZRTjT7X4QlprTCBVhUjJJsTtmbk9zI/view?usp=drive_link
