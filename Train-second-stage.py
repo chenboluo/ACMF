@@ -139,8 +139,8 @@ class mydataset1(data.Dataset):
         data = self.transforms(Image.open(img_pth))
         return data,label
         
-    def __len__(self):
-        return len(self.imgs)
+ 
+
 
 
 
@@ -343,66 +343,7 @@ def _get_(imgs,mask_rate):
 
 
 
-############################### eval function 
-################   input:  model - (forgery detector), dtloader - (test dataloader), epoch - (now training epoch)
-################   output: AUC 
-###############    eval the model in each epoch and save test images
 
-def Eval(model, dtloader,epoch):
-    model.eval()
-    sumloss = 0.
-    y_true_all = None
-    y_pred_all = None
-    print(len(dtloader))
-    with torch.no_grad():
-        for (j, batch) in enumerate(dtloader):
-            x, y_true = batch
-            y_pred = model(x.cuda())
-
-            imgs = [x.cuda(),x.cuda()]
-            y_predx = y_true.cuda()
-            ####### sigmoid function 
-            for i in range(len(y_true)):
-                y_pred[i][0] = 1/(1+torch.exp(-1*y_pred[i][0]))
-                y_pred[i][1] = 1/(1+torch.exp(-1*y_pred[i][1]))
-                sum1 =  y_pred[i][0]+y_pred[i][1]
-                y_pred[i][0] = y_pred[i][0]/sum1
-                y_pred[i][1] = y_pred[i][1]/sum1                      
-                if(y_pred[i][0]>=y_pred[i][1]):
-                    y_predx[i] =torch.tensor([0,1])
-                else:
-                    y_predx[i] =torch.tensor([1,0])
-
-            if y_true_all is None:
-                y_true_all = y_true
-                y_pred_all = y_predx
-                auc = y_pred
-            else:
-                y_true_all = torch.cat((y_true_all, y_true))
-                y_pred_all = torch.cat((y_pred_all, y_predx))
-                auc = torch.cat((auc,y_pred))
-
-
-
-
-
-        a =  y_true_all.detach()
-        b =  y_pred_all.detach()
-        d = np.array(y_true_all.cpu())
-        e = np.array(auc.cpu())
-        print(d[:,0].reshape(-1))
-        print(e[:,0].reshape(-1))
-        print('AUC',roc_auc_score(d[:,0],e[:,0]))
-        #print(a,b)
-        sumcnt = 0
-        a=a.cuda()
-        for i in range(len(a)):
-            if(a[i][0]==b[i][1]):
-                sumcnt += 1
-        print(sumcnt/len(a))
-    return roc_auc_score(d[:,0],e[:,0])
-    
-    
     
 
 args = get_args_parser()
@@ -454,7 +395,6 @@ del trainset5
 
 
 #### define test dataloader
-###### dataloader: each viedos 50 frames
 class mydataset(data.Dataset):
     def __init__(self, root,transforms=None,train=True):
         self.transforms = transforms
@@ -467,38 +407,62 @@ class mydataset(data.Dataset):
         dir1list = os.listdir(dir1)
         for i in range(len(dir1list)):
             if(dir1list[i].find('.')==-1):
-                dir2 = dir1 + dir1list[i] + '/'
+                dir2 = dir1 + dir1list[i] + '/'+name+'/'
                 dir2list = os.listdir(dir2)
                 aaa = 0
+                summ = 0
                 for j in range(len(dir2list)):
-                    if(dir2list[j].find('.') !=-1):
-                    #print(dir2list[j])
-                        if(aaa>=50):
+                    if(dir2list[j].find('new')==-1):
+                        continue
+                    dir3 = dir2 + dir2list[j] + '/'
+                    dir3list = os.listdir(dir3)
+                    summ += len(dir3list)
+                if(summ<50*2):
+                    continue
+                for j in range(len(dir2list)):
+                    n = len(dir2list)
+                    if(dir2list[j].find('new')==-1):
+                        continue
+                    dir3 = dir2 + dir2list[j] + '/'
+                    dir3list = os.listdir(dir3)
+                    for k in range(len(dir3list)):
+                        tmp = dir3list[k].find('.')
+                        if( int(dir3list[k][0:tmp])%(2)!=0 ):
+                            continue
+                        aaa = aaa + 1
+                        if(aaa>50):
                             break
-                        if( int(dir2list[j][0:4])%2 ==0 ):
-                            dir3 = dir2 + dir2list[j]
-                            self.imgs.append(dir3)
-                            aaa = aaa + 1
-                        
+                        dir4 = dir3 + dir3list[k]
+                        self.imgs.append(dir4)
+                    if(aaa>=50):
+                        break
     def __getitem__(self,index):
         label = [0.0 ,1.0]
         if(self.train):
             label = [1.0 ,0.0]
         label = torch.tensor(label)
         img_pth = self.imgs[index]
-        data = Image.open(img_pth)
-        data = self.transforms(data) 
+        data = self.transforms(Image.open(img_pth))
         return data,label
         
     def __len__(self):
         return len(self.imgs)
 
-dir3 = '/Harddisk/Datasets/1. [2019 Database & arXiv] Celeb-DF_A new dataset/fake_test/images/'
+
+
+
+dir3 = '/Harddisk/Datasets/1. [2020 Database] WildDeepfake/deepfake_in_the_wild/fake_test/'
+
 testset1 = mydataset(dir3,traintransform,train=False)
-dir4 =  '/Harddisk/Datasets/1. [2019 Database & arXiv] Celeb-DF_A new dataset/real_test/images/'
+dir4 =  '/Harddisk/Datasets/1. [2020 Database] WildDeepfake/deepfake_in_the_wild/real_test/'
+
 testset2 = mydataset(dir4,traintransform,train=True)
 testset =  ConcatDataset([testset1,testset2])
-testDataloader = torch.utils.data.DataLoader(testset, batch_size=50,shuffle=False, num_workers=int(1), drop_last=False)
+testDataloader = torch.utils.data.DataLoader(testset, batch_size=50,
+                                         shuffle=False, num_workers=int(1), drop_last=True)
+
+
+
 print(len(testDataloader))
 #exit(0)
 batchind = 0
@@ -515,8 +479,7 @@ loss2 = 0
 import collections
 from collections import OrderedDict
 model = xception(num_classes=2, pretrained=False).cuda()
-predtrain = torch.load('/Harddisk/pytorch-grad-cam-master/check_point/0.5/checkpoint-1.pth')
-#predtrain = torch.load('/Harddisk/pytorch-grad-cam-master/check_point/xception/checkpoint-0.pth')
+predtrain = torch.load('')
 us_dict = []
 new_state_dict = OrderedDict()
 for k,v in predtrain['model'].items():
@@ -529,8 +492,7 @@ model = model.cuda()
 import collections
 from collections import OrderedDict
 model2 = xception(num_classes=2, pretrained=False)
-predtrain = torch.load('/Harddisk/pytorch-grad-cam-master/check_point/0.5/checkpoint-1.pth')
-#predtrain = torch.load('/Harddisk/pytorch-grad-cam-master/check_point/xception/checkpoint-0.pth')
+predtrain = torch.load('')
 us_dict = []
 new_state_dict = OrderedDict()
 for k,v in predtrain['model'].items():
@@ -549,19 +511,6 @@ print('dataset',len(trainDataloader))
 
 
 
-def cal_fam(model, inputs):
-    #model.zero_grad()
-    with torch.no_grad():
-        inputs = inputs.detach().clone()
-        output = model.forward(inputs)
-
-    #target = (output[:, 0]-output[:, 1])
-    #print(target)
-    #target.backward(torch.ones(target.shape).cuda())
-    #fam = torch.abs(inputs.grad)
-    #print(fam)
-    #fam = torch.max(fam, dim=1, keepdim=True)[0]
-    return inputs#fam
 
 
 
@@ -579,30 +528,11 @@ while iter < 2:
     for data_iter_step,m in enumerate( testDataloader):
         data22,y_turea = m
         for data_iter_step2,m2 in enumerate( trainDataloader):
-            break
             if(data_iter_step2==0):
-                #del model
-                #model = xception(num_classes=2, pretrained=False)
                 model.load_state_dict(new_state_dict)
-                #model = model.cuda()
-                
            
             if(data_iter_step2>1):
-                
                 model.zero_grad()
-                get_cam = GradCAM(model=model, target_layer=model.conv3)
-                cam1 = get_cam(data22.cuda(), data22.size()[2:])
-                cam1 = torch.mean(cam1,dim=0)
-                index = torch.quantile(cam1.reshape(-1),0.9)
-                ddd += cam1.detach().cpu()
-                #cam1 = cam1>index
-                torchvision.utils.save_image(cam1.reshape(224,224),'output4/cam'+str(data_iter_step)+'after.jpg')
-                del get_cam
-                del cam1
-                del index
-                model.zero_grad()
-                
-                #exit(0)
                 break
             data, y_true = m2
 
@@ -610,7 +540,7 @@ while iter < 2:
 
             
             model.zero_grad()
-            h,l = _get_(data,0.5) ## high frequency and low frequency
+            h,l = _get_(data,0.1) ## high frequency and low frequency
             data = h+l   
             model.train()
             y_pred = model.forward(data.cuda())
@@ -618,15 +548,14 @@ while iter < 2:
             loss = loss.mean()
             
             
-            data, y_true = m2
-            #cam2 = torch.mean(cal_fam(model,data22.cuda()))
-            
+            data, y_true = m2            
+
             model.zero_grad()
             get_cam = GradCAM(model=model, target_layer=model.conv3)
             cam1 = get_cam(data22.cuda(), data22.size()[2:])
             cam1 = torch.mean(cam1,dim=0)
             
-            
+
             model2.zero_grad()
             cam2 = get_cam2(data.cuda(), data.size()[2:])
             cam2 = torch.mean(cam2,dim=0)
@@ -634,40 +563,21 @@ while iter < 2:
             l2 = loss2(cam1,cam2.cuda().detach())   
 
 
-            #print(cam1.shape)
             flood =  (loss-0.04).abs() + 0.04 + l2
-            
-            index = torch.quantile(cam1.reshape(-1),0.9)
-            #cam1 = cam1>index
-            torchvision.utils.save_image(cam1.reshape(224,224)*1.0,'output4/cam'+str(data_iter_step)+'before.jpg')
-            torchvision.utils.save_image(data22[0].reshape(3,224,224),'output4/cam'+str(data_iter_step)+'ori.jpg')    
-             
-            #print(l2)
-            #print(model.named_parameters())
-            
-            #exit(0)
-            #cam = torch.mean( cal_fam(model2,data.cuda()) ,dim=0)#.reshape(1,1,224,224)
-            #cam2 = torch.mean( cal_fam(model,data22.cuda()) ,dim=0)#.reshape(1,1,224,224)
-
-
-
-            flood = (loss-0.04).abs() + 0.04
             optimizer.zero_grad()
+
             model.zero_grad()
             flood.backward()
             optimizer.step()
         model.eval()
-
         
         y_pred = torch.mean(model(data22.cuda()),dim=0)
         y_turea = torch.mean(y_turea,dim=0)   
         print(y_pred,y_turea)
-        #exit(0)
+
         now.append(np.array(y_pred.cpu().detach().numpy()))
         now2.append(np.array(y_turea.cpu().detach().numpy()))
-    #index = torch.quantile(ddd.reshape(-1),0.9)
-    #ddd = ddd > index
-    #torchvision.utils.save_image(ddd.reshape(224,224)*1.0,'output3/ffans0.5'+'before.jpg')
+
          
     d = np.array(now).reshape(-1,2)
     print(d.shape)
