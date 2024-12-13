@@ -36,3 +36,14 @@ https://pan.baidu.com/s/1sULCnA-5WVtGHtfCjc9_PQ
 key：ozcc
 or 
 https://drive.google.com/file/d/1T3bNEJwsxLVlU6R6bZKWG7weMW8jvaKl/view?usp=drive_link, https://drive.google.com/file/d/1l1ZRTjT7X4QlprTCBVhUjJJsTtmbk9zI/view?usp=drive_link
+
+## Reference
+```
+@article{liu2023attention,
+  title={Attention Consistency Refined Masked Frequency Forgery Representation for Generalizing Face Forgery Detection},
+  author={Liu, Decheng and Chen, Tao and Peng, Chunlei and Wang, Nannan and Hu, Ruimin and Gao, Xinbo},
+  journal={IEEE Transactions on Information Forensics and Security},
+  year={2024}
+}
+```
+
