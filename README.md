@@ -17,13 +17,13 @@ More details about dependencies are shown in requirements.txt.
 
 ### Training & testing
 
-To test the model in the Celeb-DF in first stage, run the following script in your console. The model will start training and return the AUC at each epoch.
+To test the model in the Celeb-DF in FAC stage, run the following script in your console. The model will start training and return the AUC at each epoch.
 ```
 python test-cele.py 
 ```
 
 
-To test the model in the WDF in first stage, run the following script in your console. The model will start training and return the AUC at each epoch.
+To test the model in the WDF in FAC stage, run the following script in your console. The model will start training and return the AUC at each epoch.
 ```
 python test-wdf.py 
 ```
